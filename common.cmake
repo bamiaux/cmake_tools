@@ -378,6 +378,7 @@ endfunction()
 # - flatbuffers     auto-configure *.fbs flatbuffer specs
 # - win32           build windows executable instead of console
 # - external        disable warnings on external projects
+# - unity           enable unity build on target
 function(make_target target group)
     message("-- Configuring ${group}/${target}")
 
@@ -392,6 +393,7 @@ function(make_target target group)
     has_item(has_flatbuffers "flatbuffers" ${options})
     has_item(has_git_version "git_version" ${options})
     has_item(is_win32 "win32" ${options})
+    has_item(is_unity "unity" ${options})
 
     # sort files
     list(SORT files)
@@ -418,6 +420,25 @@ function(make_target target group)
         setup_git(${target} files includes)
     endif()
 
+    if(is_unity)
+        set(unity)
+        set(unity_ext "c")
+        foreach(it ${files})
+            if(NOT "${it}" MATCHES "[.](c|cc|cpp|cxx)$")
+                continue()
+            endif()
+            set_source_files_properties(${it} PROPERTIES HEADER_FILE_ONLY ON)
+            if("${it}" MATCHES "[.](cc|cpp|cxx)$")
+                set(unity_ext "cpp")
+            endif()
+            set(unity "${unity}#include \"${it}\"\n")
+        endforeach()
+        set(prefix "${CMAKE_CURRENT_BINARY_DIR}/${target}.${unity_ext}")
+        file(WRITE "${prefix}.in" ${unity})
+        configure_file("${prefix}.in" "${prefix}" COPYONLY)
+        list(APPEND files ${prefix})
+        source_group(TREE "${CMAKE_CURRENT_BINARY_DIR}" PREFIX cmake FILES "${prefix}")
+    endif()
 
     # add the target
     if(is_executable OR is_test)
