@@ -457,6 +457,34 @@ function(add_target target group)
     make_target(${target} ${group} ${files} OPTIONS ${options})
 endfunction()
 
+function(add_clang_format_target target)
+    find_program(CLANG_FORMAT "clang-format" REQUIRED)
+    find_package(PythonInterp REQUIRED)
+    set(files)
+    foreach(it ${ARGN})
+        get_target_property(files_ ${it} SOURCES)
+        foreach(f ${files_})
+            get_source_file_property(generated ${f} GENERATED)
+            if(NOT "${generated}" STREQUAL "NOTFOUND")
+                continue()
+            endif()
+            if(NOT "${f}" MATCHES "[.](h|hh|hpp|c|cc|cpp)$")
+                continue()
+            endif()
+            get_filename_component(f ${f} ABSOLUTE)
+            list(APPEND files ${f})
+            get_filename_component(filename ${f} NAME)
+        endforeach()
+    endforeach()
+    add_custom_target(${target}
+        COMMAND ${PYTHON_EXECUTABLE}
+        "${root_dir}/build/format.py"
+        ${CLANG_FORMAT}
+        ${files}
+    )
+    set_target_properties(${target} PROPERTIES FOLDER _cmake)
+endfunction()
+
 # set_target_output_directory <target> <suffix>
 # set target output directory at $bin(_d)?_dir/$suffix
 function(set_target_output_directory target suffix)
