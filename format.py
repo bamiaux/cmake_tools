@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
+import timeit
 
 def read_file(filename):
     with open(filename, "rb") as fh:
@@ -137,10 +137,10 @@ def main():
     subprocess.check_output([clang, "-i", "-style=file"] + files)
 
     for filename, data, modified in targets:
-        t = time.clock()
+        t = timeit.default_timer()
         after_clang = read_file(filename)
         value = process(after_clang, pre_patterns, re_fields, post_patterns)
-        step = time.clock() - t
+        step = timeit.default_timer() - t
         #print("%4dms: %s" % (round_time(step), f))
         total += step
         write_file(filename, value)
