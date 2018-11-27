@@ -9,12 +9,12 @@ import time
 
 def read_file(filename):
     with open(filename, "rb") as fh:
-        return fh.read()
+        return fh.read().decode("utf-8")
 
 def write_file(filename, data):
     fd = tempfile.NamedTemporaryFile(mode="wb", prefix=os.path.basename(filename), dir=os.path.dirname(filename), delete=False)
     try:
-        fd.write(data)
+        fd.write(data.encode("utf-8"))
     finally:
         fd.close()
     shutil.move(fd.name, filename)
