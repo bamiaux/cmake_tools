@@ -399,7 +399,7 @@ function(make_target target group)
     list(SORT files)
 
     # initialize additional include directory list
-    set(includes)
+    set(includes ${includes})
 
     # add/remove configure files
     if(has_configure)
@@ -473,9 +473,10 @@ endfunction()
 # add_target <target> <group> <directories...> [OPTIONS <options...>]
 # auto generate target from directories and apply options
 function(add_target target group)
-    get_files(files ${ARGN})
-    split_args(args "OPTIONS" options ${ARGN})
-    make_target(${target} ${group} ${files} OPTIONS ${options})
+    split_args(inputs "OPTIONS" options ${ARGN})
+    split_args(dirs "INCLUDES" includes ${inputs})
+    get_files(files ${dirs} OPTIONS ${options})
+    make_target(${target} ${group} ${files} INCLUDES ${includes} OPTIONS ${options})
 endfunction()
 
 function(add_clang_format_target target)
